@@ -1,5 +1,5 @@
 ---
-title: "Cleaning and Visualizations Portfolio"
+title: "Happiness and Democracy Script"
 author: "Giovanni Exume"
 date: "2022-12-22"
 output: word_document
@@ -26,48 +26,33 @@ library(ggpubr)
 
 ```
 
-```{r}
-names(nations)
-```
-
-
-
-
 
 Hello! This project uses datasets from the World Happiness Report, for 2020, using happiness indicators from the GallUp World Poll, and the Democracy Index for 2020 from The Economist, ranking democratic practices and institutions. As these datasets were provided to me through my classwork, I do not have links to the original sources.
 
-World Happiness:
-country: country name
-year: year of report
-Life Ladder: happiness score, or subjective well-being. Computed as national average response to the question of life evaluations                 
-Log GDP per capita: GDP in purchasing power parity (PPP) at constant 2011 international dollar prices, logged for normality. 
-Social support: Computed as the national average of the binary responses (either 0 or 1) to the GWP question “If you
-were in trouble, do you have relatives or friends you can count on to help you whenever you need them, or not?”
-Healthy life expectancy at birth: Healthy life expectancies at birth are based
-on the data extracted from the World Health Organization’s (WHO) Global Health Observatory data repository
-Freedom to make life choices: Computed as the national average of responses to the GWP
-question “Are you satisfied or dissatisfied with your freedom to choose what
-you do with your life?”
-Generosity: The residual of regressing national average of response to the GWP
-question “Have you donated money to a charity in the past month?” on GDP
-per capita.
-Perceptions of corruption: The measure is the national average of the survey responses to two questions in the GWP: “Is corruption widespread throughout the government or not” and “Is corruption widespread within businesses or
-not?” The overall perception is just the average of the two 0-or-1 responses 
-Positive affect:  The average of three positive affect measures in
-GWP: happiness, laugh and enjoyment in the Gallup World Poll waves 3-7.                  
-Negative affect: The average of three negative affect measures in
-GWP: worry, sadness and anger.
-
-Democracy Index for 2020.
-
+World Happiness Variables: 
 country: country name 
-overall score: Average score of the 5 measures 
+year: year of report 
+life_ladder: happiness score, or subjective well-being. Computed as national average response to the question of life evaluations
+log_gdp_per_capita: GDP in purchasing power parity (PPP) at constant 2011 international dollar prices, logged for normality. 
+social_support: Computed as the national average of the binary responses (either 0 or 1) to the GWP question “If you were in trouble, do you have relatives or friends you can count on to help you whenever you need them, or not?” 
+healthy_life_expectancy_at_birth: Healthy life expectancies at birth are based on the data extracted from the World Health Organization’s (WHO) Global Health Observatory data repository 
+freedom_to_make_life_choices: Computed as the national average of responses to the GWP question “Are you satisfied or dissatisfied with your freedom to choose what you do with your life?” 
+generosity: The residual of regressing national average of response to the GWP question “Have you donated money to a charity in the past month?” on GDP per capita. 
+perceptions_of_corruption: The measure is the national average of the survey responses to two questions in the GWP: “Is corruption widespread throughout the government or not” and “Is corruption widespread within businesses or not?” The overall perception is just the average of the two 0-or-1 responses.
+positive_affect: The average of three positive affect measures in GWP: happiness, laugh and enjoyment in the Gallup World Poll waves 3-7.
+negative_affect: The average of three negative affect measures in GWP: worry, sadness and anger.
+
+Democracy Index for 2020 Variables.
+country: country name 
+overall_score: The average score of the 5 measures 
 rank: country’s overall rank on democracy index 
 pluralism: a measure of pluralism 
 govfunc: a measure of how well or badly the government functions 
 poliparc: a measure of political participation 
 policul: a measure of political culture 
 civlib: a measure of civil liberty
+![image](https://user-images.githubusercontent.com/85464002/209405439-49b50cd0-3259-4d3c-8d1c-42a394cb2df8.png)
+
 
 
 # Importing Data
