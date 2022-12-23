@@ -1,0 +1,288 @@
+---
+title: "Cleaning and Visualizations Portfolio"
+author: "Giovanni Exume"
+date: "2022-12-22"
+output: word_document
+---
+
+```{r}
+
+setwd("/Users/giovanniexume/Documents/Data and Text Mining")
+
+
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(janitor)
+library(SKTools)
+library(foreign)
+library(readxl)
+library(DataExplorer)
+library(maps)
+library(plotly)
+library(countrycode)
+library(scales)
+library(ggpubr)
+
+```
+
+```{r}
+names(nations)
+```
+
+
+
+
+
+Hello! This project uses datasets from the World Happiness Report, for 2020, using happiness indicators from the GallUp World Poll, and the Democracy Index for 2020 from The Economist, ranking democratic practices and institutions. As these datasets were provided to me through my classwork, I do not have links to the original sources.
+
+World Happiness:
+country: country name
+year: year of report
+Life Ladder: happiness score, or subjective well-being. Computed as national average response to the question of life evaluations                 
+Log GDP per capita: GDP in purchasing power parity (PPP) at constant 2011 international dollar prices, logged for normality. 
+Social support: Computed as the national average of the binary responses (either 0 or 1) to the GWP question “If you
+were in trouble, do you have relatives or friends you can count on to help you whenever you need them, or not?”
+Healthy life expectancy at birth: Healthy life expectancies at birth are based
+on the data extracted from the World Health Organization’s (WHO) Global Health Observatory data repository
+Freedom to make life choices: Computed as the national average of responses to the GWP
+question “Are you satisfied or dissatisfied with your freedom to choose what
+you do with your life?”
+Generosity: The residual of regressing national average of response to the GWP
+question “Have you donated money to a charity in the past month?” on GDP
+per capita.
+Perceptions of corruption: The measure is the national average of the survey responses to two questions in the GWP: “Is corruption widespread throughout the government or not” and “Is corruption widespread within businesses or
+not?” The overall perception is just the average of the two 0-or-1 responses 
+Positive affect:  The average of three positive affect measures in
+GWP: happiness, laugh and enjoyment in the Gallup World Poll waves 3-7.                  
+Negative affect: The average of three negative affect measures in
+GWP: worry, sadness and anger.
+
+Democracy Index for 2020.
+
+country: country name 
+overall score: Average score of the 5 measures 
+rank: country’s overall rank on democracy index 
+pluralism: a measure of pluralism 
+govfunc: a measure of how well or badly the government functions 
+poliparc: a measure of political participation 
+policul: a measure of political culture 
+civlib: a measure of civil liberty
+
+
+# Importing Data
+```{r}
+happiness <- read_xlsx("worldhappiness.xlsx") %>% filter(year == 2020)
+
+democracy <- read_csv("democracy_index_2020.csv")
+
+head(happiness)
+head(democracy)
+
+dim(happiness)
+dim(democracy)
+```
+
+The happiness data set, has 95 rows, 11 variables. The democracy dataset has 167 rows and 8 variables.
+
+
+# Data Cleaning and Manipulation
+
+##Joining Happiness and Democracy Index
+
+
+```{r}
+
+happiness <- happiness %>% rename(country = "Country name")
+
+nations<-inner_join(democracy, happiness, by= "country")  %>% 
+  rename(overalldemscore = "Overall score", demrank = "rank") %>% select(-year)
+
+nations <- nations %>% clean_names()
+
+introduce(nations)
+```
+
+After joining, there are 88 countries left in the dataset and  17 feature variables. The output below shows some of the countries that have been excluded, as they were unavailable in the happiness dataset
+
+```{r}
+
+anti_join(democracy, happiness, by= "country")
+
+```
+
+
+```{r}
+plot_missing(nations)
+```
+
+Most of the data is still in a good place as it comes to missing values.
+
+
+## Adding in Continent Variable
+
+This data doesn't include a continent variable, but we can add that using the countrycode function
+
+```{r}
+
+nations$continent <- countrycode(sourcevar = nations$country, origin = "country.name", destination = "region")
+
+```
+
+
+
+# Data Visuals
+
+# Distrubtions and Average Democracy Scores of Each Continent
+
+```{r}
+
+cont_dem <- nations %>%
+  group_by(continent) %>%
+  summarise(mean_dem = mean(overalldemscore)) %>%
+  arrange(desc(mean_dem))
+
+nations %>% ggplot(aes(x = overalldemscore, fill = continent)) +
+  geom_histogram(show.legend = F) +
+  geom_vline(cont_dem, mapping = aes(xintercept = mean_dem), color = "black", linewidth = 1) +
+  facet_wrap(continent~.) +
+  scale_fill_discrete(type = RColorBrewer::brewer.pal(7, "Set1")) +
+  theme_minimal()+
+  theme(legend.position = "bottom")+
+  labs(x = "Overall Democracy Score", y = "Count", title = "Distribution & Average Democracy Scores of Each Continent")
+
+
+```
+
+This visual shows that most of the countries in the dataset are based in Europe and Central Asia, with the fewest in North American and South America.
+
+
+# Happiness Metrics for Top 5 in Democracy
+
+
+```{r}
+
+top5dem <- nations %>% 
+  head(n = 5) %>%
+  select(country, generosity, social_support, freedom_to_make_life_choices, positive_affect, negative_affect, perceptions_of_corruption) %>%
+  rename(country = country,
+         "Generosity" = generosity,
+         "Social Support" = social_support,
+         "Freedom to Make Life Choices" = freedom_to_make_life_choices,
+         "Positive Affect" = positive_affect,
+         "Negative Affect" = negative_affect,
+         "Perceptions of Corruption" = perceptions_of_corruption) %>%
+  gather(Happiness_Metric, Score, Generosity:"Perceptions of Corruption")
+
+
+
+
+```
+
+
+```{r}
+
+top5dem %>%
+  ggplot(aes(x = Score, y = Happiness_Metric, fill = country))+
+  geom_col(show.legend = FALSE)+
+  facet_wrap(country~.) +
+  scale_fill_discrete(type = c("#eee279", "#fac682", "#c48a3f", "#8a4f7d", "#7b0828")) +
+  theme_minimal() +
+  labs(x = "Standardized Scores", y = "Happiness Metrics", title = "Happiness Metrics for Top 5 in Democracy")
+ 
+
+```
+
+
+
+# Life Ladder Scores for the Top 10 and Bottom 10 in Democracy Index
+
+
+```{r}
+
+topbottom <- rbind(nations %>% head(n = 10), nations %>% tail(n = 10)) %>% 
+  mutate(Place = ifelse(demrank <= 10, "Top", "Bottom"))
+
+```
+
+
+```{r}
+topbottom %>%
+  ggplot(aes(x = reorder(country, desc(demrank)), y= life_ladder, fill = Place)) +
+  geom_col(position = "dodge") +
+  geom_text(label = topbottom$demrank, nudge_y = 0.25) +
+  coord_flip() +
+  theme_minimal()+
+  labs(x = "Life Ladder", y = "Country", title = "Life Ladder Scores for the Top 10 and Bottom 10 in Democracy")+
+    scale_fill_manual(values = c("Bottom" = "indianred",
+                                "Top" = "chartreuse4"))
+```
+
+
+# Correlations
+
+Let's see what the relationship is between civil liberty scores and perceptions of corruption
+
+
+## Checking for Normality
+```{r}
+shapiro.test(nations$civlib)
+shapiro.test(nations$perceptions_of_corruption)
+```
+Both tests are significant, so each variable is not normally distributed and a Spearman's correlation will be appropriate
+
+```{r}
+cor.test(nations$civlib, nations$perceptions_of_corruption, method = "spearman")
+```
+
+There is a moderate negative relationship between civil liberty and perceptions of corruption
+
+
+```{r}
+
+nations %>% ggplot(aes(x= civlib, y = perceptions_of_corruption, label = country)) +
+  geom_text()+
+  geom_point(alpha = 0.45) +
+  geom_smooth(method = "loess", size = 0.5) +
+  theme_minimal() +
+  labs(x = "Civil Liberty", y = "Perceptions of Corruption", subtitle = "Spearman's Correlation = -0.42, p < 0.001")
+
+
+```
+
+
+This visual shows that as civil liberty increases in a country, the average perceptions of corruptions decrease, with a dropoff after 7.5 in civil liberty scores.
+
+
+# ANOVA Differences in Positive Affect
+
+Are there any meaningful differences in positive affect between the Middle East/North Africa, Europe/Central Asia, and Latin America/Caribbean
+
+```{r}
+
+positiveaffect <- nations %>% filter(continent == c("Middle East & North Africa", "Europe & Central Asia", "Latin America & Caribbean"))
+
+anova(aov(positive_affect~continent, data = positiveaffect)) 
+```
+
+```{r}
+anovaresults <- TukeyHSD(aov(positive_affect~continent, data = positiveaffect))
+
+anovaresults
+```
+This output shows there are statistically significant differences in positive affect between the selected continents, with Europe/Central Asia and Latin America/Caribbean both having higher positive affect scores than the Middle East/North Africa, p < 0.05
+
+```{r}
+positiveaffect %>% ggplot(aes(x = continent, y = positive_affect, fill = continent))+
+    geom_boxplot(show.legend = F)+
+    theme_minimal()+
+    scale_fill_manual(values = c("indianred", "steelblue", "khaki"))+
+    labs(x = "Continent", y = "Positive Affect", title = "Differences in Positive Affect by Continent")
+```
+
+
+Github: https://github.com/giovanniexume 
+Email: gexume1@gmail.com 
+
+
+
